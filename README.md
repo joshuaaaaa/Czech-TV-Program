@@ -131,10 +131,10 @@ automation:
           message: "Začínají Zprávy na ČT1!"
 ```
 
-#### Zapni TV 5 minut před oblíbeným pořadem
+#### Zapni TV 5 minut před oblíbeným filmem
 ```yaml
 automation:
-  - alias: "Zapni TV před pořadem"
+  - alias: "Zapni TV před filmem"
     trigger:
       - platform: time_pattern
         minutes: "/1"
