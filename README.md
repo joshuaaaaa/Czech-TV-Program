@@ -18,9 +18,10 @@ Integrace pro stahování TV programu České televize do Home Assistant s týde
 
 ### HACS (Doporučeno)
 1. Přidejte tento repozitář do HACS jako vlastní repozitář
-2. Vyhledejte "Czech TV Program" v HACS
-3. Nainstalujte integraci
-4. Přidejte kartu do vaší Lovelace konfigurace
+2. Vyhledejte "Czech TV Program" v HACS a dejte stáhnout
+3. Restartujte
+4. Nainstalujte integraci
+
 
 ### Manuální instalace
 
