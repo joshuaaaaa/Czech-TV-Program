@@ -2,6 +2,9 @@
 
 Integrace pro stahování TV programu České televize do Home Assistant s týdenním programem a custom kartou pro dashboard.
 
+<img width="425" height="473" alt="image" src="https://github.com/user-attachments/assets/f52fb0e3-cb15-417f-ad42-a4d8963f06e9" />
+
+
 ## ✨ Funkce
 
 - 📺 Stahování TV programu z oficiálního API České televize
