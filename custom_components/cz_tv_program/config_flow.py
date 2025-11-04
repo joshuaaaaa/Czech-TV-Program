@@ -74,7 +74,7 @@ class CzTVProgramOptionsFlow(config_entries.OptionsFlow):
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(
-                title="", data={f"{DOMAIN}_OPTIONS": user_input}
+                title="", data={f"{DOMAIN}_OPTIONS": user_input["channels"]}
             )
 
         entry = self.hass.config_entries.async_get_entry(self.config_entry.entry_id)
