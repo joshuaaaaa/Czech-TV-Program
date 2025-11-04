@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 
 # from homeassistant.data_entry_flow import
-from .const import AVAILABLE_CHANNELS, DEFAULT_USERNAME, DOMAIN
+from .const import AVAILABLE_CHANNELS, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,7 +78,9 @@ class CzTVProgramOptionsFlow(config_entries.OptionsFlow):
             )
 
         entry = self.hass.config_entries.async_get_entry(self.config_entry.entry_id)
-        set_options = entry.options.get(f"{DOMAIN}_OPTIONS", "")
+        set_options = sorted(
+            entry.options.get(f"{DOMAIN}_OPTIONS", []), key=str.casefold
+        )
 
         channel_options = dict(
             sorted(AVAILABLE_CHANNELS.items(), key=lambda kv: kv[1].casefold())

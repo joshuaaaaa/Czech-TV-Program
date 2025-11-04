@@ -22,7 +22,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
-    channels = config_entry.data.get("channels", [])
+    channels = config_entry.options.get("channels", [])
 
     entities = [CzTVProgramSensor(coordinator, channel_id) for channel_id in channels]
 
