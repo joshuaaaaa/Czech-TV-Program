@@ -6,7 +6,7 @@ PLATFORMS = ["sensor"]
 # Available channels
 AVAILABLE_CHANNELS = {
     "ct1": "ČT1",
-    "ct2": "ČT2", 
+    "ct2": "ČT2",
     "ct24": "ČT24",
     "ct4": "ČT sport",
     "ct5": "ČT :D",
