@@ -103,10 +103,10 @@ Po instalaci budou vytvořeny senzory pro každý vybraný kanál:
 - `sensor.tv_program_ct1` - ČT1
 - `sensor.tv_program_ct2` - ČT2
 - `sensor.tv_program_ct24` - ČT24
-- `sensor.tv_program_ct4` - ČT sport
-- `sensor.tv_program_ct5` - ČT :D
-- `sensor.tv_program_ct6` - ČT art
-- `sensor.tv_program_ct7` - ČT3
+- `sensor.tv_program_ct_sport` - ČT sport
+- `sensor.tv_program_ct_d` - ČT :D
+- `sensor.tv_program_ct_art` - ČT art
+
 
 ### Atributy senzoru
 Každý senzor obsahuje následující atributy:
