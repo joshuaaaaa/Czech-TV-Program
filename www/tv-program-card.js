@@ -4,29 +4,54 @@ class TvProgramCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this._config = {};
     this._hass = null;
+    this._days = 3; // Inicializace defaultního počtu dní
   }
 
   setConfig(config) {
     if (!config.entity) {
-      throw new Error('Please define an entity');
+      throw new Error('Prosím, definujte entitu');
     }
 
     this._config = {
       entity: config.entity,
-      days: config.days || 3,
       title: config.title || 'TV Program',
       show_genre: config.show_genre !== false,
       show_duration: config.show_duration !== false,
       show_description: config.show_description !== false,
       max_programs: config.max_programs || 50,
     };
+    
+    // Nastaví počet dní z konfigurace, pokud existuje. Používá privátní proměnnou.
+    this._days = config.days || 3; 
 
     this.render();
   }
 
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    // Optimalizované renderování: rendrujeme jen když se změní data entity
+    const oldState = this._lastState;
+    const newState = hass.states[this._config.entity];
+
+    if (!oldState || !newState || oldState.state !== newState.state || JSON.stringify(oldState.attributes) !== JSON.stringify(newState.attributes)) {
+      this._lastState = newState;
+      this.render();
+    }
+  }
+
+  // Přidání metody pro parsování data/času pro správné porovnávání
+  _parseProgramDatetime(program) {
+    if (!program.date || !program.time) return null;
+    // Předpokládá formát YYYY-MM-DD HH:MM z Python kódu
+    const datetimeStr = `${program.date}T${program.time}:00`;
+    const programDate = new Date(datetimeStr);
+    
+    // Kontrola, zda je datum platné
+    if (isNaN(programDate)) {
+        console.error(`Chyba při parsování data pro program: ${program.title} s datem ${program.date} a časem ${program.time}`);
+        return null;
+    }
+    return programDate;
   }
 
   render() {
@@ -37,7 +62,7 @@ class TvProgramCard extends HTMLElement {
       this.shadowRoot.innerHTML = `
         <ha-card>
           <div class="card-content">
-            <p>Entity "${this._config.entity}" not found</p>
+            <p>Entita "${this._config.entity}" nebyla nalezena</p>
           </div>
         </ha-card>
       `;
@@ -47,16 +72,25 @@ class TvProgramCard extends HTMLElement {
     const allPrograms = entity.attributes.all_programs || [];
     const channelName = entity.attributes.channel || 'TV';
     
-    // Filter programs by selected days
+    // 1. Získej aktuální čas
     const now = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + this._config.days);
     
+    // 2. Vypočítej konečné datum (poslední den, který chceme zobrazit)
+    const endDate = new Date(now);
+    endDate.setDate(now.getDate() + this._days);
+    // Nastav čas na 23:59:59 pro daný den, abychom zahrnuli celý den
+    endDate.setHours(23, 59, 59, 999); 
+    
+    // 3. Filtruj programy
     const filteredPrograms = allPrograms
+      .map(program => ({ ...program, datetime: this._parseProgramDatetime(program) })) // Přidej parsované datum
       .filter(program => {
-        if (!program.date || !program.time) return false;
-        const programDate = new Date(program.date + ' ' + program.time);
-        return programDate >= now && programDate <= endDate;
+        if (!program.datetime) return false;
+        // Zobraz programy, které již začaly A NEBO jsou v rozsahu (now až endDate)
+        // Programy, které začaly, ale neskončily, by měly být zobrazeny, ale náš filtr je založen pouze na čase začátku.
+        // Pro správné zobrazení nadcházejících ignorujeme ty, které už začaly, a zaměřujeme se na budoucí.
+        // Protože ale entita již zobrazuje CURRENT program, zaměříme se na budoucí programy.
+        return program.datetime >= now && program.datetime <= endDate;
       })
       .slice(0, this._config.max_programs);
 
@@ -80,8 +114,9 @@ class TvProgramCard extends HTMLElement {
           border-bottom: 1px solid var(--divider-color);
         }
         .current-program {
-          background: var(--primary-color);
-          color: var(--text-primary-color);
+          /* Barvy pro lepší kontrast */
+          background: var(--primary-color, #03a9f4); 
+          color: var(--ha-card-background, #fff); 
           padding: 12px;
           border-radius: 8px;
           margin: 16px 0;
@@ -106,17 +141,18 @@ class TvProgramCard extends HTMLElement {
           border: 1px solid var(--divider-color);
           border-radius: 4px;
           background: var(--card-background-color);
+          color: var(--primary-text-color); /* Zajištění viditelnosti textu */
           cursor: pointer;
           transition: all 0.3s;
         }
         .day-button:hover {
-          background: var(--primary-color);
-          color: var(--text-primary-color);
+          background: var(--light-primary-color, #67daff); 
+          color: var(--text-primary-color, #000); /* Barva pro hover */
         }
         .day-button.active {
-          background: var(--primary-color);
-          color: var(--text-primary-color);
-          border-color: var(--primary-color);
+          background: var(--primary-color, #03a9f4);
+          color: var(--text-primary-color, #fff); 
+          border-color: var(--primary-color, #03a9f4);
         }
         .program-list {
           margin-top: 16px;
@@ -127,8 +163,11 @@ class TvProgramCard extends HTMLElement {
           display: flex;
           gap: 12px;
         }
+        .program-item:last-child {
+            border-bottom: none;
+        }
         .program-item:hover {
-          background: var(--secondary-background-color);
+          background: var(--secondary-background-color, #f0f0f0);
         }
         .program-time {
           font-weight: 500;
@@ -148,8 +187,9 @@ class TvProgramCard extends HTMLElement {
           border-radius: 4px;
           font-size: 12px;
           margin-right: 4px;
-          background: var(--primary-color);
-          color: var(--text-primary-color);
+          /* Použití accent barvy pro lepší viditelnost */
+          background: var(--label-badge-background-color, #41aea9); 
+          color: var(--label-badge-text-color, #fff); 
         }
         .program-info {
           font-size: 14px;
@@ -165,9 +205,11 @@ class TvProgramCard extends HTMLElement {
         .date-separator {
           font-weight: 500;
           padding: 12px 8px;
-          background: var(--secondary-background-color);
+          background: var(--card-background-color); /* Použijeme barvu pozadí karty */
           margin-top: 8px;
           border-radius: 4px;
+          border-bottom: 1px solid var(--divider-color);
+          color: var(--primary-color);
         }
         .no-programs {
           padding: 20px;
@@ -178,7 +220,7 @@ class TvProgramCard extends HTMLElement {
       
       <ha-card>
         <div class="card-header">
-          ${this._config.title} - ${channelName}
+          ${this._config.title} - ${this.escapeHtml(channelName)}
         </div>
         
         ${currentProgram.title ? `
@@ -194,7 +236,7 @@ class TvProgramCard extends HTMLElement {
         
         <div class="days-selector">
           ${[1, 2, 3, 5, 7].map(days => `
-            <button class="day-button ${this._config.days === days ? 'active' : ''}" 
+            <button class="day-button ${this._days === days ? 'active' : ''}" 
                     onclick="this.getRootNode().host.updateDays(${days})">
               ${days} ${days === 1 ? 'den' : days < 5 ? 'dny' : 'dní'}
             </button>
@@ -203,7 +245,7 @@ class TvProgramCard extends HTMLElement {
         
         <div class="program-list">
           ${filteredPrograms.length > 0 ? this.renderPrograms(filteredPrograms) : `
-            <div class="no-programs">Žádné nadcházející pořady</div>
+            <div class="no-programs">Žádné nadcházející pořady v následujících ${this._days} dnech.</div>
           `}
         </div>
       </ha-card>
@@ -216,9 +258,10 @@ class TvProgramCard extends HTMLElement {
 
     programs.forEach(program => {
       // Add date separator if date changes
-      if (program.date !== lastDate) {
-        const date = new Date(program.date);
-        const dateStr = this.formatDate(date);
+      if (program.date && program.date !== lastDate) {
+        // Použijeme program.datetime pro správné formátování dne v týdnu
+        const date = program.datetime || this._parseProgramDatetime(program);
+        const dateStr = date ? this.formatDate(date) : program.date;
         html += `<div class="date-separator">${dateStr}</div>`;
         lastDate = program.date;
       }
@@ -259,12 +302,17 @@ class TvProgramCard extends HTMLElement {
 
   formatDate(date) {
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Pro porovnání ignorujeme čas
+
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (date.toDateString() === today.toDateString()) {
+    const programDate = new Date(date);
+    programDate.setHours(0, 0, 0, 0);
+
+    if (programDate.getTime() === today.getTime()) {
       return 'Dnes';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
+    } else if (programDate.getTime() === tomorrow.getTime()) {
       return 'Zítra';
     } else {
       const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
@@ -273,13 +321,14 @@ class TvProgramCard extends HTMLElement {
   }
 
   escapeHtml(text) {
+    if (typeof text !== 'string') return text;
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
   updateDays(days) {
-    this._config.days = days;
+    this._days = days; // Aktualizujeme _days
     this.render();
   }
 
