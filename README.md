@@ -193,7 +193,7 @@ cards:
 ## 🔄 Aktualizace dat
 
 - Data se automaticky aktualizují každých **6 hodin**
-- Program je dostupný na **7 dní dopředu**
+- Program je dostupný na **2 dny dopředu**
 - Integraci můžete ručně aktualizovat z karty integrace
 
 ## 📝 Poznámky
