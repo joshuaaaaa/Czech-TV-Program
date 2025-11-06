@@ -1,0 +1,11 @@
+{
+  "domain": "cz_tv_program",
+  "name": "Czech TV Program",
+  "codeowners": ["@homeassistant"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/homeassistant/core",
+  "iot_class": "cloud_polling",
+  "requirements": ["aiohttp>=3.8.0", "defusedxml"],
+  "version": "1.2.1"
+}
