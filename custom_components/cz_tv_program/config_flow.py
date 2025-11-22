@@ -33,7 +33,7 @@ class CzTVProgramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step - select source."""
         if user_input is not None:
-            self.source = user_input.get("source", DEFAULT_SOURCE)
+            self._source = user_input.get("source", DEFAULT_SOURCE)
             return await self.async_step_channels()
 
         data_schema = vol.Schema(
@@ -60,23 +60,23 @@ class CzTVProgramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
 
             data = {
-                "source": self.source,
+                "source": self._source,
                 "channels": user_input["channels"],
             }
 
-            if self.source == SOURCE_CT:
+            if self._source == SOURCE_CT:
                 data["username"] = user_input.get("username", DEFAULT_USERNAME)
-            elif self.source == SOURCE_XMLTV:
+            elif self._source == SOURCE_XMLTV:
                 data["xmltv_url"] = user_input.get("xmltv_url", DEFAULT_XMLTV_URL)
 
             return self.async_create_entry(
-                title=f"TV Program ({self.source.upper()})",
+                title=f"TV Program ({self._source.upper()})",
                 data=data,
                 options={f"{DOMAIN}_OPTIONS": user_input["channels"]},
             )
 
         # Build channel options based on source
-        if self.source == SOURCE_XMLTV:
+        if self._source == SOURCE_XMLTV:
             channel_options = dict(
                 sorted(XMLTV_CHANNELS.items(), key=lambda kv: kv[1].casefold())
             )
