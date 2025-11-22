@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import CzTVProgramAPI
-from .const import DOMAIN, PLATFORMS
+from .const import DEFAULT_XMLTV_URL, DOMAIN, PLATFORMS, SOURCE_CT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,11 +21,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Get channels from options or data
     channels = entry.options.get(f"{DOMAIN}_OPTIONS") or entry.data.get("channels", [])
-    
+    source = entry.data.get("source", SOURCE_CT)
+
     api = CzTVProgramAPI(
         hass=hass,
         username=entry.data.get("username", "test"),
         channels=channels,
+        source=source,
+        xmltv_url=entry.data.get("xmltv_url", DEFAULT_XMLTV_URL),
     )
 
     coordinator = DataUpdateCoordinator(

@@ -2,10 +2,18 @@
   "config": {
     "step": {
       "user": {
-        "title": "Nastavení Czech TV Program",
-        "description": "Nakonfigurujte integraci pro stahování TV programu",
+        "title": "Czech TV Program 2.0 - Výběr zdroje",
+        "description": "Vyberte zdroj TV programu",
         "data": {
-          "username": "Uživatelské jméno (nechte 'test' pro výchozí)",
+          "source": "Zdroj dat"
+        }
+      },
+      "channels": {
+        "title": "Výběr TV kanálů",
+        "description": "Vyberte TV kanály, které chcete sledovat",
+        "data": {
+          "username": "Uživatelské jméno ČT (nechte 'test' pro výchozí)",
+          "xmltv_url": "URL XMLTV zdroje",
           "channels": "Vyberte TV kanály"
         }
       }
@@ -21,7 +29,8 @@
   "options": {
     "step": {
       "init": {
-        "title": "Možnosti",
+        "title": "Možnosti TV programu",
+        "description": "Upravte seznam sledovaných kanálů",
         "data": {
           "channels": "Vyberte TV kanály"
         }
