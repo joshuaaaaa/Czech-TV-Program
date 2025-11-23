@@ -9,7 +9,16 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 
-from .const import AVAILABLE_CHANNELS, DEFAULT_USERNAME, DOMAIN
+from .const import (
+    CT_CHANNELS,
+    DEFAULT_SOURCE,
+    DEFAULT_USERNAME,
+    DEFAULT_XMLTV_URL,
+    DOMAIN,
+    SOURCE_CT,
+    SOURCE_XMLTV,
+    XMLTV_CHANNELS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,40 +31,78 @@ class CzTVProgramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step."""
-        errors = {}
-
+        """Handle the initial step - select source."""
         if user_input is not None:
-            # Validate and create entry
-            await self.async_set_unique_id("cz_tv_program")
-            self._abort_if_unique_id_configured()
+            self._source = user_input.get("source", DEFAULT_SOURCE)
+            return await self.async_step_channels()
 
-            return self.async_create_entry(
-                title="Czech TV Program",
-                data={
-                    "username": user_input.get("username", DEFAULT_USERNAME),
-                    "channels": user_input["channels"],
-                },
-                options={f"{DOMAIN}_OPTIONS": user_input["channels"]},
-            )
-
-        # Build multi-select options for channels
-        channel_options = dict(
-            sorted(AVAILABLE_CHANNELS.items(), key=lambda kv: kv[1].casefold())
-        )
-
-        # OPRAVA: Přidán username field
         data_schema = vol.Schema(
             {
-                vol.Optional("username", default=DEFAULT_USERNAME): str,
-                vol.Required(
-                    "channels", default=list(channel_options)
-                ): cv.multi_select(channel_options),
+                vol.Required("source", default=DEFAULT_SOURCE): vol.In(
+                    {
+                        SOURCE_CT: "Česká televize (ČT1, ČT2, ČT24, ...)",
+                        SOURCE_XMLTV: "XMLTV - Prima, Nova a další",
+                    }
+                ),
             }
         )
 
+        return self.async_show_form(step_id="user", data_schema=data_schema)
+
+    async def async_step_channels(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle channel selection step."""
+        errors = {}
+
+        if user_input is not None:
+            await self.async_set_unique_id("cz_tv_program")
+            self._abort_if_unique_id_configured()
+
+            data = {
+                "source": self._source,
+                "channels": user_input["channels"],
+            }
+
+            if self._source == SOURCE_CT:
+                data["username"] = user_input.get("username", DEFAULT_USERNAME)
+            elif self._source == SOURCE_XMLTV:
+                data["xmltv_url"] = user_input.get("xmltv_url", DEFAULT_XMLTV_URL)
+
+            return self.async_create_entry(
+                title=f"TV Program ({self._source.upper()})",
+                data=data,
+                options={f"{DOMAIN}_OPTIONS": user_input["channels"]},
+            )
+
+        # Build channel options based on source
+        if self._source == SOURCE_XMLTV:
+            channel_options = dict(
+                sorted(XMLTV_CHANNELS.items(), key=lambda kv: kv[1].casefold())
+            )
+            data_schema = vol.Schema(
+                {
+                    vol.Optional("xmltv_url", default=DEFAULT_XMLTV_URL): str,
+                    vol.Required(
+                        "channels", default=list(channel_options.keys())[:5]
+                    ): cv.multi_select(channel_options),
+                }
+            )
+        else:
+            channel_options = dict(
+                sorted(CT_CHANNELS.items(), key=lambda kv: kv[1].casefold())
+            )
+            data_schema = vol.Schema(
+                {
+                    vol.Optional("username", default=DEFAULT_USERNAME): str,
+                    vol.Required(
+                        "channels", default=list(channel_options)
+                    ): cv.multi_select(channel_options),
+                }
+            )
+
         return self.async_show_form(
-            step_id="user",
+            step_id="channels",
             data_schema=data_schema,
             errors=errors,
         )
@@ -86,9 +133,16 @@ class CzTVProgramOptionsFlow(config_entries.OptionsFlow):
             entry.options.get(f"{DOMAIN}_OPTIONS", []), key=str.casefold
         )
 
-        channel_options = dict(
-            sorted(AVAILABLE_CHANNELS.items(), key=lambda kv: kv[1].casefold())
-        )
+        # Get channel options based on source
+        source = entry.data.get("source", SOURCE_CT)
+        if source == SOURCE_XMLTV:
+            channel_options = dict(
+                sorted(XMLTV_CHANNELS.items(), key=lambda kv: kv[1].casefold())
+            )
+        else:
+            channel_options = dict(
+                sorted(CT_CHANNELS.items(), key=lambda kv: kv[1].casefold())
+            )
 
         return self.async_show_form(
             step_id="init",
