@@ -1,28 +1,16 @@
-# Czech TV Program 2.0 - Home Assistant Integrace
+# Czech TV Program - Home Assistant Integrace
 
-Integrace pro stahování TV programu České televize, TV Prima, TV Nova a dalších stanic do Home Assistant s týdenním programem a custom kartou pro dashboard.
+Integrace pro stahování TV programu České televize do Home Assistant s týdenním programem a custom kartou pro dashboard.
 
 <img width="425" height="473" alt="image" src="https://github.com/user-attachments/assets/f52fb0e3-cb15-417f-ad42-a4d8963f06e9" />
 
-## 🎉 Novinky ve verzi 2.0
-
-- 🌟 **Podpora více zdrojů** - České televize a XMLTV (Prima, Nova, a další)
-- 📊 **Více typů senzorů** - Aktuální program, Nadcházející programy, Denní program
-- 💾 **JSON úložiště** - Data se ukládají do souborů pro snížení velikosti v paměti
-- 🔌 **Modulární architektura** - Snadné přidání dalších zdrojů v budoucnu
-- ⚡ **Lepší výkon** - Optimalizace načítání a ukládání dat
 
 ## ✨ Funkce
 
-- 📺 **Více zdrojů TV programu:**
-  - **Česká televize** (ČT1, ČT2, ČT24, ČT sport, ČT :D, ČT art, ČT3)
-  - **XMLTV** (Prima, Prima COOL, Prima ZOOM, Prima MAX, Prima LOVE, Prima KRIMI, Prima STAR, Prima SHOW, CNN Prima, TV Nova, Nova Cinema, Nova Action, Nova Gold, Nova Sport 1, Nova Sport 2)
+- 📺 Stahování TV programu z oficiálního API České televize
 - 📅 Týdenní program dopředu
-- 📊 **Tři typy senzorů** pro každý kanál:
-  - Aktuální program
-  - Nadcházející programy (10 nejbližších)
-  - Denní program (dnes + zítra)
-- 💾 Úsporné ukládání dat do JSON souborů
+- 🎯 Výběr kanálů: ČT1, ČT2, ČT24, ČT sport, ČT :D, ČT art, ČT3
+- 📊 Detailní informace o pořadech (název, čas, žánr, popis, délka)
 - 🎨 Custom Lovelace karta s možností výběru počtu dní
 - 🔄 Automatická aktualizace každých 6 hodin
 
@@ -49,10 +37,7 @@ Integrace pro stahování TV programu České televize, TV Prima, TV Nova a dal�
    - Jděte do **Nastavení** → **Zařízení a služby**
    - Klikněte na **+ Přidat integraci**
    - Vyhledejte "Czech TV Program"
-   - **Krok 1:** Vyberte zdroj dat:
-     - **Česká televize (ČT)** - oficiální API České televize
-     - **XMLTV** - Prima, Nova a další stanice
-   - **Krok 2:** Vyberte kanály, které chcete sledovat
+   - Vyberte kanály, které chcete sledovat
    - Klikněte na **Odeslat**
 
 ### Custom Karta
@@ -114,41 +99,21 @@ max_programs: 50
 ## 📱 Použití
 
 ### Dostupné senzory
+Po instalaci budou vytvořeny senzory pro každý vybraný kanál:
+- `sensor.tv_program_ct1` - ČT1
+- `sensor.tv_program_ct2` - ČT2
+- `sensor.tv_program_ct24` - ČT24
+- `sensor.tv_program_ct_sport` - ČT sport
+- `sensor.tv_program_ct_d` - ČT :D
+- `sensor.tv_program_ct_art` - ČT art
 
-**Verze 2.0** vytváří **tři typy senzorů** pro každý vybraný kanál:
 
-#### Příklad pro ČT1:
-- `sensor.ct1_aktualni_program` - Aktuálně běžící pořad
-- `sensor.ct1_nadchazejici` - Nadcházející programy (10 nejbližších)
-- `sensor.ct1_denni_program` - Denní program (dnes + zítra)
+### Atributy senzoru
+Každý senzor obsahuje následující atributy:
 
-#### Příklad pro TV Nova:
-- `sensor.nova_aktualni_program` - Aktuálně běžící pořad
-- `sensor.nova_nadchazejici` - Nadcházející programy
-- `sensor.nova_denni_program` - Denní program
-
-### Atributy senzorů
-
-#### Aktuální program (`*_aktualni_program`)
-- `title` - název pořadu
-- `supertitle` - nadtitul pořadu
-- `episode_title` - název dílu
-- `time` - čas začátku
-- `date` - datum
-- `genre` - žánr
-- `duration` - délka
-- `description` - popis
-- `episode` - číslo epizody
-- `link` - odkaz na detail
-- `live` - živé vysílání (true/false)
-- `premiere` - premiéra (true/false)
-
-#### Nadcházející programy (`*_nadchazejici`)
-- `programs` - seznam 10 nadcházejících programů s detaily
-
-#### Denní program (`*_denni_program`)
-- `today` - seznam programů na dnes
-- `tomorrow` - seznam programů na zítra
+- **current_*** - informace o aktuálním pořadu
+- **upcoming_programs** - seznam nadcházejících 10 pořadů
+- **all_programs** - kompletní týdenní program
 
 ### Příklad použití v automatizaci
 ```yaml
@@ -228,24 +193,15 @@ cards:
 ## 🔄 Aktualizace dat
 
 - Data se automaticky aktualizují každých **6 hodin**
-- Program je dostupný na **7 dní dopředu**
-- Data jsou uložena v JSON souborech v `/config/tv_program_data/`
+- Program je dostupný na **2 dny dopředu**
 - Integraci můžete ručně aktualizovat z karty integrace
-- V případě chyby načítání se použijí uložená data z cache
 
 ## 📝 Poznámky
 
-### Česká televize (ČT)
-- Používá **oficiální API České televize**
+- Integrace používá **oficiální API České televize**
 - API vyžaduje parametr `user`, výchozí hodnota je `test`
 - Pro vlastní registraci navštivte: https://www.ceskatelevize.cz/xml/tv-program/registrace/
 - API umožňuje **max. 1 požadavek za minutu** - integrace toto respektuje
-
-### XMLTV (Prima, Nova)
-- Používá agregovaný XMLTV zdroj: http://xmltv.tvpc.cz/xmltv.xml
-- Data se cachují na 1 hodinu
-- Podporuje vlastní XMLTV URL v pokročilém nastavení
-- Obsahuje program z DVB-T vysílání
 
 ## 🐛 Řešení problémů
 
@@ -266,15 +222,12 @@ cards:
 
 ## 🎯 Plánované funkce
 
-- [x] Podpora dalších TV stanic (Prima, Nova) ✅ **Nové ve v2.0**
-- [x] Podpora XMLTV formátu ✅ **Nové ve v2.0**
-- [x] Více typů senzorů ✅ **Nové ve v2.0**
-- [x] JSON úložiště pro úsporu paměti ✅ **Nové ve v2.0**
+- [ ] Podpora dalších TV stanic (Prima, Nova)
+- [ ] Podpora XMLTV formátu
 - [ ] Filtrování pořadů podle žánru
 - [ ] Oblíbené pořady
 - [ ] Notifikace před začátkem vybraných pořadů
 - [ ] Vyhledávání v programu
-- [ ] Podpora dalších zdrojů (další XMLTV zdroje)
 
 ## 📄 Licence
 
