@@ -1,0 +1,9 @@
+manual_refresh:
+  name: Manuální aktualizace
+  description: Manuálně aktualizuje data z Previo API
+  fields: {}
+
+debug_entities:
+  name: Debug entit
+  description: Zobrazí debug informace o všech Previo entitách v logu
+  fields: {}

@@ -1,0 +1,11 @@
+{
+  "domain": "previo_v4",
+  "name": "Previo Reservations v4",
+  "version": "3.1.0",
+  "config_flow": true,
+  "documentation": "https://www.example.com",
+  "requirements": [],
+  "codeowners": ["@yourgithub"],
+  "iot_class": "cloud_polling",
+  "integration_type": "service"
+}

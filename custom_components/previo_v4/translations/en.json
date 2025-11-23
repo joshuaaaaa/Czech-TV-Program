@@ -1,0 +1,15 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Previo v2",
+        "description": "Enter your Previo credentials.",
+        "data": {
+          "login": "Login",
+          "password": "Password",
+          "hotel_id": "Hotel ID"
+        }
+      }
+    }
+  }
+}
